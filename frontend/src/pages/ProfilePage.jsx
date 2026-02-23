@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { getProfile, updateProfile } from '../api/users'
+import { followUser, unfollowUser } from '../api/followers'
 import { useAuth } from '../context/AuthContext'
 import Navbar from '../components/Navbar'
 
@@ -37,6 +38,11 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  const [isFollowing, setIsFollowing] = useState(false)
+  const [followersCount, setFollowersCount] = useState(0)
+  const [followingCount, setFollowingCount] = useState(0)
+  const [followLoading, setFollowLoading] = useState(false)
+
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({})
   const [saving, setSaving] = useState(false)
@@ -48,6 +54,9 @@ export default function ProfilePage() {
     getProfile(username)
       .then((res) => {
         setProfile(res.data)
+        setIsFollowing(res.data.is_following ?? false)
+        setFollowersCount(res.data.followers_count ?? 0)
+        setFollowingCount(res.data.following_count ?? 0)
         setForm({
           display_name: res.data.display_name ?? '',
           bio: res.data.bio ?? '',
@@ -83,6 +92,27 @@ export default function ProfilePage() {
       setSaveError(Array.isArray(detail) ? detail[0]?.msg : (detail ?? 'Save failed'))
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleFollow = async () => {
+    if (followLoading) return
+    const wasFollowing = isFollowing
+    const prevCount = followersCount
+    setFollowLoading(true)
+    setIsFollowing(!wasFollowing)
+    setFollowersCount(wasFollowing ? prevCount - 1 : prevCount + 1)
+    try {
+      if (wasFollowing) {
+        await unfollowUser(username)
+      } else {
+        await followUser(username)
+      }
+    } catch {
+      setIsFollowing(wasFollowing)
+      setFollowersCount(prevCount)
+    } finally {
+      setFollowLoading(false)
     }
   }
 
@@ -123,15 +153,30 @@ export default function ProfilePage() {
               Member since {formatDate(profile.created_at)}
             </p>
           </div>
-          <div className="flex gap-4 text-center">
-            <div>
-              <p className="text-lg font-bold">{profile.followers_count}</p>
-              <p className="text-cadre-muted text-xs">Followers</p>
+          <div className="flex flex-col items-end gap-3">
+            <div className="flex gap-4 text-center">
+              <div>
+                <p className="text-lg font-bold">{followersCount}</p>
+                <p className="text-cadre-muted text-xs">Followers</p>
+              </div>
+              <div>
+                <p className="text-lg font-bold">{followingCount}</p>
+                <p className="text-cadre-muted text-xs">Following</p>
+              </div>
             </div>
-            <div>
-              <p className="text-lg font-bold">{profile.following_count}</p>
-              <p className="text-cadre-muted text-xs">Following</p>
-            </div>
+            {currentUser && !isOwner && (
+              <button
+                onClick={handleFollow}
+                disabled={followLoading}
+                className={
+                  isFollowing
+                    ? 'border border-cadre-border text-cadre-muted px-4 py-1.5 rounded text-sm hover:border-cadre-red hover:text-cadre-red transition disabled:opacity-50'
+                    : 'bg-cadre-red text-white px-4 py-1.5 rounded text-sm font-semibold hover:opacity-90 transition disabled:opacity-50'
+                }
+              >
+                {isFollowing ? 'Following' : 'Follow'}
+              </button>
+            )}
           </div>
         </div>
 

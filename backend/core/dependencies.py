@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
@@ -8,6 +10,7 @@ from database import get_db
 from models.user import User
 
 bearer_scheme = HTTPBearer()
+optional_bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def get_current_user(
@@ -23,3 +26,16 @@ def get_current_user(
     if user is None:
         raise UnauthorizedError()
     return user
+
+
+def get_optional_current_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(optional_bearer_scheme),
+    db: Session = Depends(get_db),
+) -> Optional[User]:
+    if not credentials:
+        return None
+    try:
+        user_id = decode_access_token(credentials.credentials)
+        return db.get(User, user_id)
+    except Exception:
+        return None

@@ -11,13 +11,16 @@ export default function FeedPage() {
   const [content, setContent] = useState('')
   const [posting, setPosting] = useState(false)
   const [postError, setPostError] = useState(null)
+  const [feedFilter, setFeedFilter] = useState('all')
   const textareaRef = useRef(null)
 
   useEffect(() => {
-    getFeed()
+    setLoading(true)
+    setPosts([])
+    getFeed(0, 20, feedFilter === 'following')
       .then((res) => setPosts(res.data))
       .finally(() => setLoading(false))
-  }, [])
+  }, [feedFilter])
 
   const handlePost = async (e) => {
     e.preventDefault()
@@ -46,6 +49,30 @@ export default function FeedPage() {
     <div className="min-h-screen bg-black">
       <Navbar />
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+
+        {/* Feed filter toggle */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setFeedFilter('all')}
+            className={
+              feedFilter === 'all'
+                ? 'bg-cadre-red text-white px-4 py-1.5 rounded text-sm font-semibold'
+                : 'border border-cadre-border text-cadre-muted px-4 py-1.5 rounded text-sm hover:border-white hover:text-white transition'
+            }
+          >
+            All posts
+          </button>
+          <button
+            onClick={() => setFeedFilter('following')}
+            className={
+              feedFilter === 'following'
+                ? 'bg-cadre-red text-white px-4 py-1.5 rounded text-sm font-semibold'
+                : 'border border-cadre-border text-cadre-muted px-4 py-1.5 rounded text-sm hover:border-white hover:text-white transition'
+            }
+          >
+            Following
+          </button>
+        </div>
 
         {/* Create post */}
         <form onSubmit={handlePost} className="bg-cadre-dark border border-cadre-border rounded-lg p-4 space-y-3">

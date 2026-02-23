@@ -98,8 +98,9 @@ class ProfileResponse(BaseModel):
     sex: Optional[str]
     birthday: Optional[datetime]
     relationship_status: Optional[str]
-    followers_count: int
-    following_count: int
+    followers_count: int = 0
+    following_count: int = 0
+    is_following: bool = False
 
 
 class AuthResponse(BaseModel):

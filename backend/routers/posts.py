@@ -29,10 +29,11 @@ def _optional_user(
 def feed(
     skip: int = 0,
     limit: int = 20,
+    following: bool = False,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return get_feed(db, current_user_id=current_user.id, skip=skip, limit=limit)
+    return get_feed(db, current_user_id=current_user.id, skip=skip, limit=limit, following_only=following)
 
 
 @router.get("/user/{username}", response_model=list[PostResponse])

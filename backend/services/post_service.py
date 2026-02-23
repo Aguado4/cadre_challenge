@@ -2,6 +2,7 @@ from sqlalchemy import select, desc
 from sqlalchemy.orm import Session, joinedload
 
 from core.exceptions import ForbiddenError, PostNotFoundError
+from models.follower import Follower
 from models.like import Like
 from models.post import Post
 from models.user import User
@@ -61,15 +62,20 @@ def create_post(db: Session, user: User, data: PostCreate) -> PostResponse:
 
 
 def get_feed(
-    db: Session, current_user_id: int | None = None, skip: int = 0, limit: int = 20
+    db: Session,
+    current_user_id: int | None = None,
+    skip: int = 0,
+    limit: int = 20,
+    following_only: bool = False,
 ) -> list[PostResponse]:
-    posts = db.scalars(
-        select(Post)
-        .options(joinedload(Post.user))
-        .order_by(desc(Post.created_at))
-        .offset(skip)
-        .limit(limit)
-    ).all()
+    query = select(Post).options(joinedload(Post.user))
+    if following_only and current_user_id:
+        query = query.join(Post.user).join(
+            Follower,
+            (Follower.followed_id == Post.user_id) & (Follower.follower_id == current_user_id),
+        )
+    query = query.order_by(desc(Post.created_at)).offset(skip).limit(limit)
+    posts = db.scalars(query).all()
     liked = _liked_post_ids(db, current_user_id, [p.id for p in posts])
     return [_to_response(p, liked) for p in posts]
 

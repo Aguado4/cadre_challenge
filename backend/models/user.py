@@ -29,3 +29,5 @@ class User(Base):
     # Relationships
     posts = relationship("Post", back_populates="user", cascade="all, delete-orphan")
     comments = relationship("Comment", back_populates="user", cascade="all, delete-orphan")
+    followers = relationship("Follower", foreign_keys="Follower.followed_id", back_populates="followed", cascade="all, delete-orphan")
+    following = relationship("Follower", foreign_keys="Follower.follower_id", back_populates="follower", cascade="all, delete-orphan")

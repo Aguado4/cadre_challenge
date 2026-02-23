@@ -1,7 +1,7 @@
 import api from './axios'
 
-export const getFeed = (skip = 0, limit = 20) =>
-  api.get('/posts/feed', { params: { skip, limit } })
+export const getFeed = (skip = 0, limit = 20, following = false) =>
+  api.get('/posts/feed', { params: { skip, limit, ...(following ? { following: true } : {}) } })
 
 export const getUserPosts = (username, skip = 0, limit = 20) =>
   api.get(`/posts/user/${username}`, { params: { skip, limit } })
