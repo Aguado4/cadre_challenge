@@ -7,3 +7,13 @@ body {
   color: #ffffff;
   margin: 0;
 }
+
+/* Shared input style used across forms and profile edit */
+.input-field {
+  @apply w-full bg-cadre-dark border border-cadre-border rounded px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-cadre-red transition;
+}
+
+/* Style native select options (dark background) */
+select.input-field option {
+  background-color: #111111;
+}

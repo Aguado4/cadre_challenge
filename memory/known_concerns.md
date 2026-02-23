@@ -4,6 +4,7 @@
 - SQLite does not enforce foreign keys by default — must enable with `PRAGMA foreign_keys = ON` in each connection
 - When switching to PostgreSQL, change `DATABASE_URL` in `.env` and update `database.py` driver
 - Denormalized counts (likes_count, followers_count) must always be updated atomically with the triggering action
+- `Base.metadata.create_all()` only creates missing tables — it does NOT alter existing ones. Adding new columns to a model requires either deleting the DB (dev) or running an ALTER TABLE migration (prod). During early phases, delete `backend/cadrebook.db` and restart when schema changes. Stop uvicorn first or the file will be locked.
 
 ## Authentication
 - JWT secret must be long and random — never hardcode, always load from `.env`

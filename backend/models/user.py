@@ -14,6 +14,13 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
+    # Profile fields
+    display_name = Column(String(100), nullable=True)
+    bio = Column(String(500), nullable=True)
+    sex = Column(String(20), nullable=True)
+    birthday = Column(DateTime, nullable=True)
+    relationship_status = Column(String(50), nullable=True)
+
     # Denormalized counts — updated atomically with their triggers
     followers_count = Column(Integer, default=0, nullable=False)
     following_count = Column(Integer, default=0, nullable=False)
