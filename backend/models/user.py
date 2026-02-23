@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import Column, DateTime, Integer, String
+from sqlalchemy.orm import relationship
 
 from database import Base
 
@@ -24,3 +25,6 @@ class User(Base):
     # Denormalized counts — updated atomically with their triggers
     followers_count = Column(Integer, default=0, nullable=False)
     following_count = Column(Integer, default=0, nullable=False)
+
+    # Relationships
+    posts = relationship("Post", back_populates="user", cascade="all, delete-orphan")
