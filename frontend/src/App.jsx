@@ -1,34 +1,49 @@
-import { useEffect, useState } from 'react'
-import axios from 'axios'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { AuthProvider, useAuth } from './context/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
+import NotFoundPage from './pages/NotFoundPage'
 
-export default function App() {
-  const [health, setHealth] = useState(null)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    axios
-      .get('/api/health')
-      .then((res) => setHealth(res.data))
-      .catch(() => setError('Backend unreachable'))
-  }, [])
-
+// Temporary home placeholder — replaced in Phase 4 with FeedPage
+function HomePage() {
+  const { user, logout } = useAuth()
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-6">
-      <h1 className="text-5xl font-bold tracking-tight">
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
+      <h1 className="text-4xl font-bold">
         Cadre<span className="text-cadre-red">Book</span>
       </h1>
-      <p className="text-cadre-muted text-sm">Connect. Share. Belong.</p>
-      <div className="mt-4 px-4 py-2 rounded border border-cadre-border text-sm">
-        {error ? (
-          <span className="text-cadre-red">{error}</span>
-        ) : health ? (
-          <span className="text-green-400">
-            API status: <strong>{health.status}</strong>
-          </span>
-        ) : (
-          <span className="text-cadre-muted">Checking API...</span>
-        )}
-      </div>
+      <p className="text-cadre-muted text-sm">
+        Welcome back, <strong className="text-white">@{user?.username}</strong>
+      </p>
+      <button
+        onClick={logout}
+        className="border border-cadre-red text-cadre-red px-4 py-1 rounded text-sm hover:bg-cadre-red hover:text-white transition"
+      >
+        Log out
+      </button>
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <HomePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   )
 }
