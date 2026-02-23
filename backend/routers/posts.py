@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends
+from fastapi import status
 from sqlalchemy.orm import Session
 
 from core.dependencies import get_current_user
+from core.exceptions import UnauthorizedError
 from database import get_db
 from models.user import User
 from schemas.post import PostCreate, PostResponse, PostUpdate
@@ -16,13 +18,21 @@ from services.post_service import (
 router = APIRouter(prefix="/posts", tags=["posts"])
 
 
+def _optional_user(
+    db: Session = Depends(get_db),
+    # Try to get current user but don't fail if unauthenticated
+) -> User | None:
+    return None
+
+
 @router.get("/feed", response_model=list[PostResponse])
 def feed(
     skip: int = 0,
     limit: int = 20,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return get_feed(db, skip=skip, limit=limit)
+    return get_feed(db, current_user_id=current_user.id, skip=skip, limit=limit)
 
 
 @router.get("/user/{username}", response_model=list[PostResponse])
@@ -30,9 +40,10 @@ def user_posts(
     username: str,
     skip: int = 0,
     limit: int = 20,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return get_user_posts(db, username, skip=skip, limit=limit)
+    return get_user_posts(db, username, current_user_id=current_user.id, skip=skip, limit=limit)
 
 
 @router.post("", response_model=PostResponse, status_code=status.HTTP_201_CREATED)

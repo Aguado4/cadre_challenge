@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { updatePost, deletePost } from '../api/posts'
+import { toggleLike } from '../api/likes'
 import { useAuth } from '../context/AuthContext'
 
 function timeAgo(iso) {
@@ -10,7 +11,7 @@ function timeAgo(iso) {
   if (diff < 60) return `${diff}s ago`
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  return new Date(utc).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 export default function PostCard({ post, onUpdated, onDeleted }) {
@@ -24,13 +25,39 @@ export default function PostCard({ post, onUpdated, onDeleted }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
+  // Like state — starts from server value
+  const [liked, setLiked] = useState(post.liked_by_me)
+  const [likesCount, setLikesCount] = useState(post.likes_count)
+  const [liking, setLiking] = useState(false)
+
+  const handleLike = async () => {
+    if (liking) return
+    // Optimistic update
+    const prevLiked = liked
+    const prevCount = likesCount
+    setLiked(!liked)
+    setLikesCount(liked ? likesCount - 1 : likesCount + 1)
+    setLiking(true)
+    try {
+      const res = await toggleLike(post.id)
+      setLiked(res.data.liked_by_me)
+      setLikesCount(res.data.likes_count)
+    } catch {
+      // Rollback on error
+      setLiked(prevLiked)
+      setLikesCount(prevCount)
+    } finally {
+      setLiking(false)
+    }
+  }
+
   const handleSave = async () => {
     if (!editContent.trim()) return
     setSaving(true)
     setEditError(null)
     try {
       const res = await updatePost(post.id, { content: editContent.trim() })
-      onUpdated(res.data)
+      onUpdated({ ...res.data, liked_by_me: liked, likes_count: likesCount })
       setEditing(false)
     } catch (err) {
       const detail = err.response?.data?.detail
@@ -105,11 +132,19 @@ export default function PostCard({ post, onUpdated, onDeleted }) {
         <p className="text-sm text-white whitespace-pre-wrap break-words">{post.content}</p>
       )}
 
-      {/* Footer: likes count + owner actions */}
+      {/* Footer: like button + owner actions */}
       <div className="flex items-center justify-between mt-3 pt-3 border-t border-cadre-border">
-        <span className="text-xs text-cadre-muted">
-          {post.likes_count} {post.likes_count === 1 ? 'like' : 'likes'}
-        </span>
+        {/* Like button */}
+        <button
+          onClick={handleLike}
+          disabled={liking}
+          className={`flex items-center gap-1.5 text-sm transition disabled:opacity-50 ${
+            liked ? 'text-cadre-red' : 'text-cadre-muted hover:text-cadre-red'
+          }`}
+        >
+          <span className="text-base leading-none">{liked ? '♥' : '♡'}</span>
+          <span>{likesCount}</span>
+        </button>
 
         {isOwner && !editing && (
           <div className="flex items-center gap-3">

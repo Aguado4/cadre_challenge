@@ -8,6 +8,7 @@ import models  # noqa: F401 — registers all ORM models before create_all
 from routers.auth import router as auth_router
 from routers.users import router as users_router
 from routers.posts import router as posts_router
+from routers.likes import router as likes_router
 
 app = FastAPI(title="CadreBook API", version="1.0.0")
 
@@ -24,6 +25,7 @@ register_exception_handlers(app)
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(posts_router)
+app.include_router(likes_router)
 
 
 @app.on_event("startup")
