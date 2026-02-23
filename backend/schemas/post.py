@@ -47,6 +47,7 @@ class PostResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     likes_count: int
+    comments_count: int
     liked_by_me: bool = False
     user_id: int
     author: PostAuthor | None = None

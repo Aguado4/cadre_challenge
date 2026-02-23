@@ -24,6 +24,7 @@ def _to_response(post: Post, liked_post_ids: set[int] | None = None) -> PostResp
         created_at=post.created_at,
         updated_at=post.updated_at,
         likes_count=post.likes_count,
+        comments_count=post.comments_count,
         liked_by_me=(post.id in liked_post_ids) if liked_post_ids is not None else False,
         user_id=post.user_id,
         author=author,

@@ -15,8 +15,10 @@ class Post(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
-    # Denormalized for read performance — updated atomically with like/unlike
+    # Denormalized for read performance — updated atomically with their triggers
     likes_count = Column(Integer, default=0, nullable=False)
+    comments_count = Column(Integer, default=0, nullable=False)
 
-    # Relationship
+    # Relationships
     user = relationship("User", back_populates="posts")
+    comments = relationship("Comment", back_populates="post", cascade="all, delete-orphan")

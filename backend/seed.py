@@ -38,7 +38,7 @@ USERS = [
     {
         "username": "chad",
         "email": "chad@cadrebook.dev",
-        "display_name": "Chad Lohri",
+        "display_name": "Chad Lohrli",
         "bio": "Gym. Code. Repeat. Probably talking about startups.",
         "sex": "male",
         "birthday": datetime(1993, 7, 4, tzinfo=timezone.utc),

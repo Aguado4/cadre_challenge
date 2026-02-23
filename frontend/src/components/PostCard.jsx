@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { updatePost, deletePost } from '../api/posts'
 import { toggleLike } from '../api/likes'
 import { useAuth } from '../context/AuthContext'
+import CommentSection from './CommentSection'
 
 function timeAgo(iso) {
   // Backend returns naive UTC — append 'Z' so JS parses it as UTC, not local time
@@ -30,9 +31,12 @@ export default function PostCard({ post, onUpdated, onDeleted }) {
   const [likesCount, setLikesCount] = useState(post.likes_count)
   const [liking, setLiking] = useState(false)
 
+  // Comment section toggle + live count
+  const [showComments, setShowComments] = useState(false)
+  const [commentsCount, setCommentsCount] = useState(post.comments_count)
+
   const handleLike = async () => {
     if (liking) return
-    // Optimistic update
     const prevLiked = liked
     const prevCount = likesCount
     setLiked(!liked)
@@ -43,7 +47,6 @@ export default function PostCard({ post, onUpdated, onDeleted }) {
       setLiked(res.data.liked_by_me)
       setLikesCount(res.data.likes_count)
     } catch {
-      // Rollback on error
       setLiked(prevLiked)
       setLikesCount(prevCount)
     } finally {
@@ -132,19 +135,32 @@ export default function PostCard({ post, onUpdated, onDeleted }) {
         <p className="text-sm text-white whitespace-pre-wrap break-words">{post.content}</p>
       )}
 
-      {/* Footer: like button + owner actions */}
+      {/* Footer: like + comment + owner actions */}
       <div className="flex items-center justify-between mt-3 pt-3 border-t border-cadre-border">
-        {/* Like button */}
-        <button
-          onClick={handleLike}
-          disabled={liking}
-          className={`flex items-center gap-1.5 text-sm transition disabled:opacity-50 ${
-            liked ? 'text-cadre-red' : 'text-cadre-muted hover:text-cadre-red'
-          }`}
-        >
-          <span className="text-base leading-none">{liked ? '♥' : '♡'}</span>
-          <span>{likesCount}</span>
-        </button>
+        <div className="flex items-center gap-4">
+          {/* Like button */}
+          <button
+            onClick={handleLike}
+            disabled={liking}
+            className={`flex items-center gap-1.5 text-sm transition disabled:opacity-50 ${
+              liked ? 'text-cadre-red' : 'text-cadre-muted hover:text-cadre-red'
+            }`}
+          >
+            <span className="text-base leading-none">{liked ? '♥' : '♡'}</span>
+            <span>{likesCount}</span>
+          </button>
+
+          {/* Comment toggle */}
+          <button
+            onClick={() => setShowComments((v) => !v)}
+            className={`flex items-center gap-1.5 text-sm transition ${
+              showComments ? 'text-white' : 'text-cadre-muted hover:text-white'
+            }`}
+          >
+            <span className="text-base leading-none">💬</span>
+            <span>{commentsCount}</span>
+          </button>
+        </div>
 
         {isOwner && !editing && (
           <div className="flex items-center gap-3">
@@ -184,6 +200,15 @@ export default function PostCard({ post, onUpdated, onDeleted }) {
           </div>
         )}
       </div>
+
+      {/* Expandable comment section */}
+      {showComments && (
+        <CommentSection
+          postId={post.id}
+          onCommentAdded={() => setCommentsCount((n) => n + 1)}
+          onCommentDeleted={() => setCommentsCount((n) => Math.max(0, n - 1))}
+        />
+      )}
     </div>
   )
 }
