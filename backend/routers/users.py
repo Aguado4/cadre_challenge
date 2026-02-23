@@ -6,10 +6,19 @@ from sqlalchemy.orm import Session
 from core.dependencies import get_current_user, get_optional_current_user
 from database import get_db
 from models.user import User
-from schemas.user import ProfileResponse, ProfileUpdate
-from services.user_service import get_profile, update_profile
+from schemas.user import ProfileResponse, ProfileUpdate, UserSearchResult
+from services.user_service import get_profile, search_users, update_profile
 
 router = APIRouter(prefix="/users", tags=["users"])
+
+
+@router.get("/search", response_model=list[UserSearchResult])
+def search(
+    q: str = "",
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_optional_current_user),
+):
+    return search_users(db, q, current_user_id=current_user.id if current_user else None)
 
 
 @router.get("/{username}", response_model=ProfileResponse)

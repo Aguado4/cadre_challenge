@@ -18,6 +18,12 @@ export default function Navbar() {
       {user && (
         <div className="flex items-center gap-4">
           <Link
+            to="/search"
+            className="text-cadre-muted text-sm hover:text-white transition"
+          >
+            Search
+          </Link>
+          <Link
             to={`/profile/${user.username}`}
             className="text-cadre-muted text-sm hover:text-white transition"
           >

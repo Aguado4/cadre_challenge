@@ -111,3 +111,13 @@ class AuthResponse(BaseModel):
 
 class TokenData(BaseModel):
     user_id: int
+
+
+class UserSearchResult(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    username: str
+    display_name: str | None
+    followers_count: int = 0
+    is_following: bool = False
